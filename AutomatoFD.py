@@ -1,3 +1,5 @@
+import copy
+
 from sympy import false
 import xml.etree.ElementTree as ET
 
@@ -102,17 +104,18 @@ class AutomatoFD:
 
         return s
 
-def importXml():
+def importXml(caminho):
+
     #pega o arquivo e tranforma em uma arvore de elementos e pega seu no raiz
-    raiz = ET.parse('testeXML.jff').getroot()
+    raiz = ET.parse(str(caminho)).getroot()
 
     # Pegando o nó <automaton>
     automaton = raiz.find('automaton')
 
     alfabeto = set()
 
-    for transition in automaton.findall('transition'):
-        alfabeto.add(transition.find('read').text)
+    for transicao in automaton.findall('transition'):
+        alfabeto.add(transicao.find('read').text)
 
     alfabeto = ''.join(sorted(alfabeto))
 
@@ -127,8 +130,8 @@ def importXml():
         if not state.find('final') == None:
             afd.mudaEstadoFinal(id, True)
 
-    for transition in automaton.findall('transition'):
-        afd.criaTransicao(transition.find('from').text, transition.find('to').text, transition.find('read').text)
+    for transicao in automaton.findall('transition'):
+        afd.criaTransicao(transicao.find('from').text, transicao.find('to').text, transicao.find('read').text)
     return afd
 
 def exportXml(afd, caminho):
@@ -165,6 +168,41 @@ def exportXml(afd, caminho):
     tree.write(caminho, encoding='utf-8', xml_declaration=True)
     print(f"Arquivo JFLAP exportado para: {caminho}")
 
+def copiaAFD(afdOriginal):
+    return copy.deepcopy(afdOriginal)
+
+def transicoesPorEstado(afd):
+    transicoesEstado = {}
+
+    for (origem, simbolo), destino in afd.transicoes.items():
+        if origem not in transicoesEstado:
+            transicoesEstado[origem] = []
+        transicoesEstado[origem].append((simbolo, destino))
+
+    return transicoesEstado
+
+
+def estadosEquivalentes(transicoesEstado):
+    equivalentes = set()
+    estadosOrdenados = sorted(transicoesEstado.keys())
+    
+    #passa por cada estado, de forma ordenada pelo ID
+    for i in range(len(estadosOrdenados)):
+        #compara o atual com os da frente Ex: 1 com 2,3,4 depois 2 com 3 e 4, etc
+        for j in range(i + 1, len(estadosOrdenados)):
+            estadoI = estadosOrdenados[i]
+            estadoJ = estadosOrdenados[j]
+
+            transacaoI = sorted(transicoesEstado.get(estadoI, []))
+            transacaoJ = sorted(transicoesEstado.get(estadoJ, []))
+
+            if transacaoI == transacaoJ:
+                equivalentes.add((estadoI, estadoJ))
+
+    print(equivalentes)
+
+
+
 if __name__ == '__main__':
     afd = AutomatoFD('ab')
 
@@ -175,22 +213,29 @@ if __name__ == '__main__':
 
     afd.criaTransicao(1,2,'a')
     afd.criaTransicao(2,1,'a')
-    afd.criaTransicao(3,4,'a')
+    afd.criaTransicao(3,2,'a')
     afd.criaTransicao(4,3,'a')
     afd.criaTransicao(1,3,'b')
-    afd.criaTransicao(3,1,'b')
+    afd.criaTransicao(3,3,'b')
     afd.criaTransicao(2,4,'b')
     afd.criaTransicao(4,2,'b')
 
-    exportXml(afd, 'testeExport.jff')
-    print(afd)
+    # print(afd)
+    # cadeia = 'abbabaabbbbbba'
+    #
+    # afd.limpaAfd()
+    # parada = afd.move(cadeia)
+    #
+    # if not afd.deuErro() and afd.estadoFinal(parada):
+    #     print('Aceita cadeia "{}"'.format(cadeia))
+    # else:
+    #     print('Rejeita cadeia "{}"'.format(cadeia))
+    #
+    # exportXml(afd, 'testeExport.jff')
 
-    cadeia = 'abbabaabbbbbba'
+    afd2 = importXml('testeImport.jff')
+    # print(afd2)
+    # afd3 = copiaAFD(afd)
+    print(afd2)
 
-    afd.limpaAfd()
-    parada = afd.move(cadeia)
-
-    if not afd.deuErro() and afd.estadoFinal(parada):
-        print('Aceita cadeia "{}"'.format(cadeia))
-    else:
-        print('Rejeita cadeia "{}"'.format(cadeia))
+    estadosEquivalentes(transicoesPorEstado(afd2))

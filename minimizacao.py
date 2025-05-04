@@ -1,5 +1,7 @@
 from copy import deepcopy
 
+from sympy import false
+
 import AutomatoFD
 import data
 
@@ -14,7 +16,6 @@ def verificaTerminaisNaoTerminais(finais, estado1, estado2):
 def estadosEquivalentes(afd, transicoesEstado):
     tabela = {}
     estados = list(afd.estados)
-    equivalentes = set()
 
     #Cria apenas metade da tabela
     for i in range(len(estados)):
@@ -45,6 +46,7 @@ def estadosEquivalentes(afd, transicoesEstado):
                         tabela[estado1, estado2] = []
                         tabela[estado1, estado2].append((destino1, destino2))
 
+
     for chave, valor in tabela.items():
         if isinstance(valor, list):
             for tupla in valor:
@@ -52,8 +54,69 @@ def estadosEquivalentes(afd, transicoesEstado):
                     tabela[chave] = tabela[tupla]
                     break
 
-    for chave, valor in tabela.items():
+    grafo = {}
+    for (a, b), valor in tabela.items():
         if not isinstance(valor, bool):
-            equivalentes.add(chave)
+            grafo.setdefault(a, set()).add(b)
+            grafo.setdefault(b, set()).add(a)
 
-    return equivalentes
+    #Agora, percorre os grupos conectados (componentes)
+    visitados = set()
+    grupos = []
+
+    def dfs(no, grupo):
+        visitados.add(no)
+        grupo.add(no)
+        for vizinho in grafo.get(no, []):
+            if vizinho not in visitados:
+                dfs(vizinho, grupo)
+
+    for no in grafo:
+        if no not in visitados:
+            grupo = set()
+            dfs(no, grupo)
+            grupos.append(sorted(grupo))
+
+    return grupos
+
+def minimiza(afd):
+    afd.eColmpleto()
+    transicoes, inacessiveis = afd.transicoesPorEstado()
+    novoAFD = data.copiaAFD(afd)
+
+    # tira inacessiveis
+    for id in inacessiveis:
+        novoAFD.removeEstado(id)
+
+    equivalentes = estadosEquivalentes(afd, transicoes)
+
+    for i in equivalentes:
+        for j in i[1:]:
+            for k in transicoes:
+                for caminho, destino in transicoes[k]:
+                        if destino == j:
+                            if k != destino:
+                                transicoes[k].remove((caminho, destino))
+                                transicoes[k].append((caminho, i[0]))
+                            else:
+                                if (caminho, i[0]) not in transicoes[i[0]]:
+                                    transicoes[i[0]].append((caminho, i[0]))
+            novoAFD.removeEstado(j)
+
+    #Limpa as antigas transicoes e coloca as novas
+    novoAFD.transicoes = dict()
+    for i in transicoes:
+        for simbolo, destino in transicoes[i]:
+            novoAFD.criaTransicao(i, destino, simbolo)
+
+    return novoAFD
+
+def equivalentes(afd1, afd2):
+    afd1 = minimiza(afd1)
+    afd2 = minimiza(afd2)
+
+    if afd1.alfabeto == afd2.alfabeto and len(afd1.transicoes) == len (afd2.transicoes):
+        for x in afd1.transicoes:
+            if x not in afd2.transicoes: return False
+        return True
+    return False

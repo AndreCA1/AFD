@@ -1,9 +1,5 @@
 from sympy import false
 
-import data
-import minimizacao
-
-
 class AFD:
 
     #Funcao construtora
@@ -65,6 +61,16 @@ class AFD:
     def removeEstado(self, id):
         self.estados.remove(id)
         self.finais.discard(id)
+
+        chavesremover = []
+        #Busca todas as chaves que tem como origem o id recebido
+        for k in self.transicoes:
+            if k[0] == id:
+                chavesremover.append(k)
+
+        #Agr as remove
+        for k in chavesremover:
+            del self.transicoes[k]
 
     def move (self, cadeia):
         for simbolo in cadeia:
@@ -139,5 +145,6 @@ class AFD:
         for estado in self.estados:
             if estado not in EstadoAcessiveis:
                 EstadosInacessiveis.add(estado)
+        EstadosInacessiveis.discard(self.inicial)
 
         return transicoesOrdenadas, EstadosInacessiveis

@@ -36,14 +36,16 @@ else:
 data.exportXml(afd, 'testeExport.jff')
 
 #Teste importação
-afd = data.importXml("testeImport.jff")
-print(afd)
+afd1 = data.importXml("afd1.jff")
+print(afd1)
+afd2 = data.importXml("afd2.jff")
+afd3 = data.importXml("afd3.jff")
 
 #Teste minimizacao
-afd.eColmpleto()
-transicoes, inacessiveis = afd.transicoesPorEstado()
+afdMinimizado = minimizacao.minimiza(afd1)
+print(afdMinimizado)
+data.exportXml(afdMinimizado, 'testeMinimizado.jff')
 
-#tira inacessiveis
-for id in inacessiveis:
-    afd.removeEstado(id)
-teste = minimizacao.estadosEquivalentes(afd, transicoes)
+#teste se são equivalentes
+if minimizacao.equivalentes(afd3, afd2): print('Os automatos são equivalentes')
+else: print('Os automatos não são equivalentes')

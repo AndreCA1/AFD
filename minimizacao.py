@@ -1,3 +1,4 @@
+import AutomatoFD
 import data
 
 def verificaTerminaisNaoTerminais(finais, estado1, estado2):
@@ -111,12 +112,23 @@ def minimiza(afd):
     return novoAFD
 
 #refazer isso aq
-def equivalentes(afd1, afd2):
-    afd1 = minimiza(afd1)
-    afd2 = minimiza(afd2)
+def equivalentes(afd1: AutomatoFD.AFD, afd2: AutomatoFD.AFD):
+    if afd1.alfabeto != afd2.alfabeto: raise('Não são equivalentes')
 
-    if afd1.alfabeto == afd2.alfabeto and len(afd1.transicoes) == len (afd2.transicoes):
-        for x in afd1.transicoes:
-            if x not in afd2.transicoes: return False
-        return True
+    novoAFD = data.copiaAFD(afd1)
+    tamAFD1 = len(afd1.estados)
+
+    #garante que nenhum estado tera o mesmo ID
+    for estado in afd2.estados:
+        novoAFD.criaEstado(estado + tamAFD1, False, estado in afd2.finais)
+
+    for (origem, simbolo), destino in afd2.transicoes.items():
+        novoAFD.criaTransicao(origem + tamAFD1, destino + tamAFD1, simbolo)
+
+    equivalentes = estadosEquivalentes(novoAFD, novoAFD.transicoesPorEstado())
+
+    for i in equivalentes:
+        if afd1.inicial in i and afd2.inicial + tamAFD1 in i:
+            return True
+
     return False

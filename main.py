@@ -50,12 +50,12 @@ afdMinimizado = minimizacao.minimiza(afd)
 print(afdMinimizado)
 data.exportXml(afdMinimizado, 'testeMinimizado.jff')
 
-#teste se são equivalentes
-if minimizacao.equivalentes(afd4, afd1): print('Os automatos são equivalentes')
-else: print('Os automatos não são equivalentes')
-
 afdA = data.importXml("afdA.jff")
 afdB = data.importXml("afdB.jff")
+
+#teste se são equivalentes
+if minimizacao.equivalentes(afdA, afdB): print('Os automatos são equivalentes')
+else: print('Os automatos não são equivalentes')
 
 afdUnido = multiplicacao.uniao(afdA, afdB)
 data.exportXml(afdUnido, 'testeUniao.jff')

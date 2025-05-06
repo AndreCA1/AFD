@@ -24,7 +24,7 @@ class AFD:
         if inicial:
             self.inicial = id
         if final:
-            self.finais = id
+            self.finais.add(id)
         return True
 
     def criaTransicao(self, origem, destino, simbolo):

@@ -1,6 +1,7 @@
 import AutomatoFD
 import data
 import minimizacao
+import multiplicacao
 
 #Teste Criacao AFD
 afd = AutomatoFD.AFD('ab')
@@ -40,6 +41,8 @@ afd1 = data.importXml("afd1.jff")
 print(afd1)
 afd2 = data.importXml("afd2.jff")
 afd3 = data.importXml("afd3.jff")
+afd4 = data.importXml("afd4.jff")
+print(afd4)
 
 #Teste minimizacao
 afdMinimizado = minimizacao.minimiza(afd1)
@@ -47,5 +50,20 @@ print(afdMinimizado)
 data.exportXml(afdMinimizado, 'testeMinimizado.jff')
 
 #teste se são equivalentes
-if minimizacao.equivalentes(afd3, afd2): print('Os automatos são equivalentes')
+if minimizacao.equivalentes(afd4, afd1): print('Os automatos são equivalentes')
 else: print('Os automatos não são equivalentes')
+
+afdA = data.importXml("afdA.jff")
+afdB = data.importXml("afdB.jff")
+
+afdUnido = multiplicacao.uniao(afdA, afdB)
+data.exportXml(afdUnido, 'testeUniao.jff')
+
+afdIntercecao = multiplicacao.intercecao(afdA, afdB)
+data.exportXml(afdIntercecao, 'testeIntercecao.jff')
+
+afdDiferenca = multiplicacao.diferenca(afdA, afdB)
+data.exportXml(afdDiferenca, 'testeDiferenca.jff')
+
+afdComplemento = multiplicacao.complemento(afdB)
+data.exportXml(afdComplemento, 'testeComplemento.jff')

@@ -1,8 +1,3 @@
-from copy import deepcopy
-
-from sympy import false
-
-import AutomatoFD
 import data
 
 def verificaTerminaisNaoTerminais(finais, estado1, estado2):
@@ -46,7 +41,7 @@ def estadosEquivalentes(afd, transicoesEstado):
                         tabela[estado1, estado2] = []
                         tabela[estado1, estado2].append((destino1, destino2))
 
-
+    #passa pelo campos em brancos verificando se algum de seus possiveis estados equivalentes está marcado
     for chave, valor in tabela.items():
         if isinstance(valor, list):
             for tupla in valor:
@@ -54,13 +49,15 @@ def estadosEquivalentes(afd, transicoesEstado):
                     tabela[chave] = tabela[tupla]
                     break
 
+    #pega as tuplas e tranforma em conjuntos de estados equivalentes
+    #usei busca em profundidade no grafo representado por lista de adjascencia
     grafo = {}
     for (a, b), valor in tabela.items():
         if not isinstance(valor, bool):
             grafo.setdefault(a, set()).add(b)
             grafo.setdefault(b, set()).add(a)
 
-    #Agora, percorre os grupos conectados (componentes)
+    #percorre os grupos conectados
     visitados = set()
     grupos = []
 
@@ -84,14 +81,17 @@ def minimiza(afd):
     transicoes, inacessiveis = afd.transicoesPorEstado()
     novoAFD = data.copiaAFD(afd)
 
-    # tira inacessiveis
+    #verificar inacessiveis por busca em profundidade
+    #tira inacessiveis
     for id in inacessiveis:
         novoAFD.removeEstado(id)
 
     equivalentes = estadosEquivalentes(afd, transicoes)
 
+    #Compara 1 estado com todos os outros
     for i in equivalentes:
         for j in i[1:]:
+            #Passa por todas as transicoes
             for k in transicoes:
                 for caminho, destino in transicoes[k]:
                         if destino == j:
@@ -111,6 +111,7 @@ def minimiza(afd):
 
     return novoAFD
 
+#verificar como ignorar o nome dos estados
 def equivalentes(afd1, afd2):
     afd1 = minimiza(afd1)
     afd2 = minimiza(afd2)

@@ -45,7 +45,8 @@ afd4 = data.importXml("afd4.jff")
 print(afd4)
 
 #Teste minimizacao
-afdMinimizado = minimizacao.minimiza(afd1)
+afd = data.importXml("afd.jff")
+afdMinimizado = minimizacao.minimiza(afd)
 print(afdMinimizado)
 data.exportXml(afdMinimizado, 'testeMinimizado.jff')
 

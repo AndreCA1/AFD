@@ -78,11 +78,10 @@ def estadosEquivalentes(afd, transicoesEstado):
 
 def minimiza(afd):
     afd.eColmpleto()
-    transicoes, inacessiveis = afd.transicoesPorEstado()
+    transicoes = afd.transicoesPorEstado()
     novoAFD = data.copiaAFD(afd)
 
-    #verificar inacessiveis por busca em profundidade
-    #tira inacessiveis
+    inacessiveis = afd.estadosNaoConexos(transicoes)
     for id in inacessiveis:
         novoAFD.removeEstado(id)
 
@@ -111,7 +110,7 @@ def minimiza(afd):
 
     return novoAFD
 
-#verificar como ignorar o nome dos estados
+#refazer isso aq
 def equivalentes(afd1, afd2):
     afd1 = minimiza(afd1)
     afd2 = minimiza(afd2)

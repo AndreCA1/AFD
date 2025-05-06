@@ -124,16 +124,10 @@ class AFD:
         transicoesEstado = {}
         transicoesOrdenadas = {}
 
-        EstadoAcessiveis = set()
-        EstadosInacessiveis = set()
-
         for (origem, simbolo), destino in self.transicoes.items():
             if origem not in transicoesEstado:
                 transicoesEstado[origem] = []
             transicoesEstado[origem].append((simbolo, destino))
-
-            # Marca o estado como acessível
-            EstadoAcessiveis.add(destino)
 
         # Ordena pelas keys
         for estado in sorted(transicoesEstado.keys()):
@@ -141,10 +135,23 @@ class AFD:
             listaOrdenada = sorted(transicoesEstado[estado], key=lambda x: x[0])
             transicoesOrdenadas[estado] = listaOrdenada
 
-        # Estados inacessíveis
-        for estado in self.estados:
-            if estado not in EstadoAcessiveis:
-                EstadosInacessiveis.add(estado)
-        EstadosInacessiveis.discard(self.inicial)
+        return transicoesOrdenadas
 
-        return transicoesOrdenadas, EstadosInacessiveis
+    #verifica inacessiveis por busca em profundidade
+    def estadosNaoConexos(self, transicoesPorEstado):
+        visitados = set()
+        naoVisitados = set()
+
+        def dfs(no):
+            visitados.add(no)
+            for (caminho, vizinho) in transicoesPorEstado[no]:
+                if vizinho not in visitados:
+                    dfs(vizinho)
+
+        dfs(self.inicial)
+
+        for i in self.estados:
+            if i not in visitados:
+                naoVisitados.add(i)
+
+        return naoVisitados

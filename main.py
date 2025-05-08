@@ -1,70 +1,151 @@
-import AutomatoFD
+import os
 import data
 import minimizacao
 import multiplicacao
 
-#Teste Criacao AFD
-afd = AutomatoFD.AFD('ab')
 
-for i in range (1,5):
-    afd.criaEstado(i)
-afd.mudaEstadoInicial(1)
-afd.mudaEstadoFinal(4,True)
+def nome_do_arquivo_sem_extensao(caminho):
+    return os.path.splitext(os.path.basename(caminho))[0]
 
-afd.criaTransicao(1,2,'a')
-afd.criaTransicao(2,1,'a')
-afd.criaTransicao(3,2,'a')
-afd.criaTransicao(4,3,'a')
-afd.criaTransicao(1,3,'b')
-afd.criaTransicao(3,3,'b')
-afd.criaTransicao(2,4,'b')
-afd.criaTransicao(4,2,'b')
+def main():
+    afds = {}
 
-print(afd)
+    while True:
+        print("\n=== MENU AFD ===")
+        print("1. Importar AFD (XML)")
+        print("2. Exportar AFD (XML)")
+        print("3. Copiar AFD")
+        print("4. Minimizar AFD")
+        print("5. Testar equivalência entre dois AFDs")
+        print("6. Operações com linguagens")
+        print("0. Sair")
+        opcao = input("Escolha uma opção: ")
 
-#Teste de cadeia
-cadeia = 'aababb'
+        match opcao:
+            case '1':
+                caminho = data.escolher_arquivo_para_abrir()
+                if caminho:
+                    nome = nome_do_arquivo_sem_extensao(caminho)
+                    afds[nome] = data.importXml(caminho)
+                    print(f"AFD '{nome}' carregado com sucesso de '{caminho}'.")
+                else:
+                    print("Operação cancelada.")
 
-afd.limpaAfd()
-parada = afd.move(cadeia)
+            case '2':
+                nome = input("Nome do AFD a ser exportado: ")
+                if nome in afds:
+                    caminho = data.escolher_arquivo_para_salvar()
+                    if caminho:
+                        data.exportXml(afds[nome], caminho)
+                        print(f"AFD '{nome}' exportado com sucesso para '{caminho}'.")
+                    else:
+                        print("Operação cancelada.")
+                else:
+                    print("AFD não encontrado.")
 
-if not afd.deuErro() and afd.estadoFinal(parada):
-    print('Aceita cadeia "{}"'.format(cadeia))
-else:
-    print('Rejeita cadeia "{}"'.format(cadeia))
+            case '3':
+                nome_original = input("Nome do AFD original: ")
+                if nome_original in afds:
+                    novo_nome = input("Nome para o novo AFD (cópia): ")
+                    afds[novo_nome] = data.copiaAFD(afds[nome_original])
+                    print(f"Cópia de '{nome_original}' criada como '{novo_nome}'.")
+                else:
+                    print("AFD original não encontrado.")
 
-#Teste exportacao
-data.exportXml(afd, 'testeExport.jff')
+            case '4':
+                caminho = data.escolher_arquivo_para_abrir()
+                if caminho:
+                    nome = nome_do_arquivo_sem_extensao(caminho)
+                    afds[nome] = data.importXml(caminho)
+                    if nome in afds:
+                        nome_min = input("Nome para o AFD minimizado: ")
+                        afds[nome_min] = minimizacao.minimiza(afds[nome])
+                        data.exportXml(afds[nome_min], f"{nome_min}.jff")
+                        print(f"AFD minimizado exportado como '{nome_min}'.")
+                else:
+                    print("Operação cancelada.")
 
-#Teste importação
-afd1 = data.importXml("afd1.jff")
-print(afd1)
-afd2 = data.importXml("afd2.jff")
-afd3 = data.importXml("afd3.jff")
-afd4 = data.importXml("afd4.jff")
-print(afd4)
+            case '5':
+                print("Selecione o primeiro AFD:")
+                caminho1 = data.escolher_arquivo_para_abrir()
+                print("Selecione o segundo AFD:")
+                caminho2 = data.escolher_arquivo_para_abrir()
+                if caminho1 and caminho2:
+                    nome1 = nome_do_arquivo_sem_extensao(caminho1)
+                    nome2 = nome_do_arquivo_sem_extensao(caminho2)
 
-#Teste minimizacao
-afd = data.importXml("afd.jff")
-afdMinimizado = minimizacao.minimiza(afd)
-print(afdMinimizado)
-data.exportXml(afdMinimizado, 'testeMinimizado.jff')
+                    if nome1 not in afds:
+                        afds[nome1] = data.importXml(caminho1)
+                    if nome2 not in afds:
+                        afds[nome2] = data.importXml(caminho2)
 
-afdA = data.importXml("afdA.jff")
-afdB = data.importXml("afdB.jff")
+                    equivalentes = minimizacao.equivalentes(afds[nome1],afds[nome2])
+                    print("AFDs equivalentes." if equivalentes else "AFDs diferentes.")
+                else:
+                    print("Operação cancelada.")
 
-#teste se são equivalentes
-if minimizacao.equivalentes(afdA, afdB): print('Os automatos são equivalentes')
-else: print('Os automatos não são equivalentes')
+            case '6':
+                print("\nOperações disponíveis:")
+                print("a. União")
+                print("b. Interseção")
+                print("c. Complemento")
+                print("d. Diferença")
+                subop = input("Escolha a operação: ")
 
-afdUnido = multiplicacao.uniao(afdA, afdB)
-data.exportXml(afdUnido, 'testeUniao.jff')
+                if subop in {'a', 'b', 'd'}:
+                    print("Selecione o primeiro AFD:")
+                    caminho1 = data.escolher_arquivo_para_abrir()
+                    print("Selecione o segundo AFD:")
+                    caminho2 = data.escolher_arquivo_para_abrir()
 
-afdIntercecao = multiplicacao.intercecao(afdA, afdB)
-data.exportXml(afdIntercecao, 'testeIntercecao.jff')
+                    if caminho1 and caminho2:
+                        nome1 = nome_do_arquivo_sem_extensao(caminho1)
+                        nome2 = nome_do_arquivo_sem_extensao(caminho2)
+                        novo_nome = input("Nome para o AFD resultado: ")
 
-afdDiferenca = multiplicacao.diferenca(afdA, afdB)
-data.exportXml(afdDiferenca, 'testeDiferenca.jff')
+                        if nome1 not in afds:
+                            afds[nome1] = data.importXml(caminho1)
+                        if nome2 not in afds:
+                            afds[nome2] = data.importXml(caminho2)
 
-afdComplemento = multiplicacao.complemento(afdB)
-data.exportXml(afdComplemento, 'testeComplemento.jff')
+                        match subop:
+                            case 'a':
+                                afds[novo_nome] = multiplicacao.uniao(afds[nome1], afds[nome2])
+                                data.exportXml(afds[novo_nome], f"{novo_nome}.jff")
+                            case 'b':
+                                afds[novo_nome] = multiplicacao.intercecao(afds[nome1], afds[nome2])
+                                data.exportXml(afds[novo_nome], f"{novo_nome}.jff")
+                            case 'd':
+                                afds[novo_nome] = multiplicacao.diferenca(afds[nome1], afds[nome2])
+                                data.exportXml(afds[novo_nome], f"{novo_nome}.jff")
+                        print(f"Operação realizada. Resultado salvo como '{novo_nome}'.")
+                    else:
+                        print("Operação cancelada.")
+
+                elif subop == 'c':
+                    caminho = data.escolher_arquivo_para_abrir()
+                    if caminho:
+                        nome = nome_do_arquivo_sem_extensao(caminho)
+                        afds[nome] = data.importXml(caminho)
+
+                        if nome not in afds:
+                            afds[nome] = data.importXml(caminho)
+
+                        novo_nome = input("Nome para o complemento: ")
+                        afds[novo_nome] = multiplicacao.complemento(afds[nome])
+                        data.exportXml(afds[novo_nome], f"{novo_nome}.jff")
+                        print(f"Complemento salvo como '{novo_nome}'.")
+                    else:
+                        print("Operação cancelada.")
+                else:
+                    print("Operação inválida.")
+
+            case '0':
+                print("Encerrando.")
+                break
+
+            case _:
+                print("Opção inválida.")
+
+if __name__ == "__main__":
+    main()

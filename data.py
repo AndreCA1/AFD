@@ -71,3 +71,24 @@ def exportXml(afd, caminho):
 
 def copiaAFD(afdOriginal):
     return copy.deepcopy(afdOriginal)
+
+from tkinter import Tk, filedialog
+
+def escolher_arquivo_para_abrir():
+    root = Tk()
+    root.withdraw()  # Oculta a janela principal do Tkinter
+    caminho = filedialog.askopenfilename(
+        title="Selecione o arquivo XML do AFD",
+        filetypes=[("Arquivos XML", "*.jff")])
+    root.destroy()
+    return caminho
+
+def escolher_arquivo_para_salvar():
+    root = Tk()
+    root.withdraw()
+    caminho = filedialog.asksaveasfilename(
+        title="Salvar AFD como...",
+        defaultextension=".jff",
+        filetypes=[("Arquivos XML", "*.jff")])
+    root.destroy()
+    return caminho
